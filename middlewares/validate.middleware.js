@@ -1,4 +1,4 @@
-const { ValidationError } = require("../utils/errors");
+const { ValidationError } = require("../util/errors");
 
 const formatDetails = details => {
   return details.map(detail => ({

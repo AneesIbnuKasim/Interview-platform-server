@@ -1,6 +1,6 @@
 const env = require("../config/env");
-const { AppError, NotFoundError } = require("../utils/errors");
-const logger = require("../utils/logger");
+const { AppError, NotFoundError } = require("../util/errors");
+const logger = require("../util/logger");
 
 const notFound = (req, res, next) => {
   next(new NotFoundError(`Route ${req.originalUrl} not found`));

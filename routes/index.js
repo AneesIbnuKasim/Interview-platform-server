@@ -1,34 +1,20 @@
+const router = require("express").Router();
+const apiResponse = require("../utils/apiResponse");
+const healthRoutes = require("../modules/health/health.routes");
+const authRoutes = require("../modules/auth/auth.routes");
+const userRoutes = require("../modules/users/user.routes");
+const roomRoutes = require("../modules/rooms/room.routes");
 
-const authRoutes = require('./auth')
-const adminRoutes = require('./admin')
-const productRoutes = require('./product')
-const categoryRoutes = require('./category')
-const userRoutes = require('./user')
-const searchRoutes = require('./search')
-const cartRoutes = require('./cart')
-const couponRoutes = require('./coupon')
-const paymentRoutes = require('./payment')
-const orderRoutes = require('./order')
-const analyticsRoutes = require('./analytics')
-const chatRoutes = require('./chat')
-const bannerRoutes = require('./banner')
+router.get("/", (req, res) => {
+  apiResponse.success(res, {
+    name: "Pairloop API",
+    version: "1.0.0",
+  });
+});
 
-const setupRoutes = (app)=>{
-    app.use('/api/auth', authRoutes)
-    app.use('/api/admin', adminRoutes)
-    app.use('/api/user', userRoutes)
-    app.use('/api/products',productRoutes)
-    app.use('/api/category',categoryRoutes)
-    app.use('/api/payments',paymentRoutes)
-    app.use('/api/search',searchRoutes)
-    app.use('/api/cart',cartRoutes)
-    app.use('/api/coupon',couponRoutes)
-    app.use('/api/orders',orderRoutes)
-    app.use('/api/analytics',analyticsRoutes)
-    app.use('/api/chat',chatRoutes)
-    app.use('/api/banner',bannerRoutes)
-}
+router.use("/health", healthRoutes);
+router.use("/auth", authRoutes);
+router.use("/users", userRoutes);
+router.use("/rooms", roomRoutes);
 
-module.exports = {
-    setupRoutes
-}
+module.exports = router;

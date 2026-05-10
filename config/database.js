@@ -1,77 +1,31 @@
-const mongoose = require('mongoose')
-const config  = require('./config')
-const logger = require('../utils/logger')
+const mongoose = require("mongoose");
+const env = require("./env");
+const logger = require("../util/logger");
 
-class DatabaseConnection {
-    constructor() {
-        this.isConnected = false
-    }
-    async connect() {
-        try {
-          if (this.isConnected) {
-            logger.info('db connected already')
-            return
-        }
-
-        const options = {
-            // useNewUrlParser: true,
-            // useUnifiedTopology: true,
-            maxPoolSize: 10,
-            serverSelectionTimeoutMs: 5000,
-            socketTimeoutMs: 45000,
-            family: 4
-        }
-
-        await mongoose.connect(config.MONGODB_URI,options)
-
-        this.isConnected = true
-        logger.info(`mongodb connected successfully`)
-        mongoose.connection.on('error',(err)=>{
-        logger.error('db connection error:',err)
-        })
-
-        mongoose.connection.on('disconnect',()=>{
-          logger.warn('DB connection disconnected')
-          this.isConnected = false
-        })
-
-        mongoose.connection.on('reconnect',()=>{
-          logger.info('DB connection reconnected')
-          this.isConnected = true
-        })
-    }
-       catch (error) {
-            logger.error('db connection failed: ',error)
-        }
-}
-
-  async disconnect() {
-     try {
-       await mongoose.connection.close()
-      this.isConnected = false
-      logger.info('db disconnected gracefully')
-    }
-     catch (error) {
-      logger.error('Error during mongoDb disconnection', error) 
-     }
- }
-
-  getConnectionStatus() {
-    return {
-      isConnected: this.isConnected,
-      readyState: mongoose.connection.readyState,
-      host: mongoose.connection.host,
-      port: mongoose.connection.port,
-      name: mongoose.connection.name
-    }
+const connectDatabase = async () => {
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
   }
-}
 
-const dbConnection = new DatabaseConnection()
+  mongoose.set("strictQuery", true);
 
-process.on('SIGINT',async()=>{
-  await dbConnection.disconnect()
-  process.exit(0)
-})
+  await mongoose.connect(env.mongoUri, {
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+  });
 
-module.exports = dbConnection
+  logger.info("MongoDB connected");
+  return mongoose.connection;
+};
+
+const disconnectDatabase = async () => {
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+    logger.info("MongoDB disconnected");
+  }
+};
+
+module.exports = {
+  connectDatabase,
+  disconnectDatabase,
+};

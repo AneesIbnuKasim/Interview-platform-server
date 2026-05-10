@@ -1,8 +1,8 @@
 const path = require("path");
 const dotenv = require("dotenv");
 
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "../../.env"), quiet: true });
+dotenv.config({ quiet: true });
 
 const toArray = (value, fallback = []) => {
   if (!value) return fallback;
@@ -11,7 +11,7 @@ const toArray = (value, fallback = []) => {
 
 const env = {
   nodeEnv: process.env.NODE_ENV || "development",
-  port: Number(process.env.PORT) || 5001,
+  port: Number(process.env.PORT) || 5001 ,
   mongoUri: process.env.MONGO_URI || "mongodb://localhost:27017/pairloop",
   clientOrigins: toArray(process.env.CLIENT_ORIGINS, [
     "http://localhost:5173",

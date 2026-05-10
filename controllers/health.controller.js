@@ -1,5 +1,5 @@
-const asyncHandler = require("../utils/asyncHandler");
-const apiResponse = require("../utils/apiResponse");
+const asyncHandler = require("../util/asyncHandler");
+const apiResponse = require("../util/apiResponse");
 
 const getHealth = asyncHandler(async (req, res) => {
   apiResponse.success(res, {

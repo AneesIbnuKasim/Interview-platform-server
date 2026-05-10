@@ -1,5 +1,5 @@
-const { AuthenticationError } = require("../utils/errors");
-const { verifyAccessToken } = require("../utils/jwt");
+const { AuthenticationError } = require("../util/errors");
+const { verifyAccessToken } = require("../util/jwt");
 
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization || "";
