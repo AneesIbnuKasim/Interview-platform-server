@@ -1,4 +1,4 @@
-const { verifyAccessToken } = require("../utils/jwt");
+const { verifyAccessToken } = require("../util/jwt");
 
 const readToken = socket => {
   const authToken = socket.handshake.auth?.token;

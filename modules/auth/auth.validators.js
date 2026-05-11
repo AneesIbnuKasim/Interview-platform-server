@@ -11,7 +11,17 @@ const login = Joi.object({
   password: Joi.string().required(),
 });
 
+const refresh = Joi.object({
+  refreshToken: Joi.string().required(),
+});
+
+const logout = Joi.object({
+  refreshToken: Joi.string().allow("", null),
+});
+
 module.exports = {
   register,
   login,
+  refresh,
+  logout,
 };

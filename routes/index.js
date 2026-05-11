@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const apiResponse = require("../utils/apiResponse");
+const apiResponse = require("../util/apiResponse");
 const healthRoutes = require("../modules/health/health.routes");
 const authRoutes = require("../modules/auth/auth.routes");
 const userRoutes = require("../modules/users/user.routes");

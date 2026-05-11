@@ -1,35 +1,55 @@
-const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const mongoose = require("mongoose");
+const env = require("../config/env");
+
+const refreshTokenSchema = new mongoose.Schema(
+  {
+    tokenHash: {
+      type: String,
+      required: true,
+    },
+    expiresAt: {
+      type: Date,
+      required: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
 
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Name is required"],
+      required: true,
       trim: true,
-      minlength: [2, "Name must be at least 2 characters long"],
-      maxlength: [50, "Name cannot exceed 50 characters"],
+      minlength: 2,
+      maxlength: 80,
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: true,
       unique: true,
       lowercase: true,
       trim: true,
-      match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        "Please provide a valid email",
-      ],
-    },
-    phone: {
-      type: String,
-      default: null,
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters long"],
-      maxlength: [128, "Password cant exceed 20 characters"],
+      required: true,
+      select: false,
+    },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    status: {
+      type: String,
+      enum: ["active", "disabled"],
+      default: "active",
     },
     avatar: {
       url: {
@@ -41,96 +61,66 @@ const userSchema = new mongoose.Schema(
         default: "",
       },
     },
-    role: {
+    timezone: {
       type: String,
-      enum: ["user", "admin"],
-      default: "user",
+      default: "UTC",
     },
-    addresses: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Address",
-        default: null,
+    preferences: {
+      emailNotifications: {
+        type: Boolean,
+        default: true,
       },
-    ],
-    status: {
-      type: String,
-      enum: ["active", "banned"],
-      default: "active",
+      autoRecordSessions: {
+        type: Boolean,
+        default: false,
+      },
+      defaultEditorTheme: {
+        type: String,
+        enum: ["light", "dark", "system"],
+        default: "dark",
+      },
     },
-    wallet: {
-      balance: { type: Number, default: 0 },
+    refreshTokens: {
+      type: [refreshTokenSchema],
+      default: [],
+      select: false,
     },
-    banReason: {
-      type: String,
-      default: null,
-    },
-    bannedAt: {
+    lastLoginAt: {
       type: Date,
       default: null,
     },
-    bannedBy: {
-      type: mongoose.Schema.ObjectId,
-      ref: "User",
-      default: null,
-    },
-    isVerified: {
-      type: String,
-      default: false,
-    },
-    otpDetails: {
-      code: { type: String },
-      expiresAt: { type: Date },
-      purpose: { type: String },
-    },
-    lastLogin: {
-      type: String,
-      default: null,
-    },
-    wishlist: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Products",
-        default: null,
-      },
-    ],
   },
   { timestamps: true }
 );
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function hashPassword(next) {
+  if (!this.isModified("password")) return next();
+
   try {
-    //hashing password before saving
-    if (this.isModified("password")) {
-      const hashedPassword = await bcrypt.hash(this.password, 12);
-      this.password = hashedPassword;
-    }
-    //hashing otp before saving
-    if (this.isModified("otpDetails") && this.otpDetails?.code) {
-      const hashedOtp = await bcrypt.hash(this.otpDetails.code, 12);
-      this.otpDetails.code = hashedOtp;
-    }
-    next();
+    this.password = await bcrypt.hash(this.password, env.bcryptRounds);
+    return next();
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
-userSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+userSchema.methods.comparePassword = function comparePassword(password) {
+  return bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.compareOtp = async function (candidateOtp) {
-  return bcrypt.compare(candidateOtp, this.otpDetails.code);
+userSchema.methods.toAuthJSON = function toAuthJSON() {
+  return {
+    id: this._id.toString(),
+    name: this.name,
+    email: this.email,
+    role: this.role,
+    avatar: this.avatar,
+    timezone: this.timezone,
+    preferences: this.preferences,
+  };
 };
 
-userSchema.methods.getPublicProfile = function () {
-  const userObject = this.toObject();
-  delete userObject.password;
-  return userObject;
-};
-
-userSchema.statics.findByEmail = function (email) {
+userSchema.statics.findByEmail = function findByEmail(email) {
   return this.findOne({ email: email.toLowerCase() });
 };
 
