@@ -14,12 +14,6 @@ class UserController extends BaseController {
     BaseController.sendSuccess(res, "Profile retrived successfully", user, 200);
   });
 
-  static fetchWallet = BaseController.asyncHandler(async (req, res) => {
-    const wallet = await UserService.fetchWallet(req.user._id);
-    BaseController.logAction("GET_WALLET", wallet);
-    BaseController.sendSuccess(res, "Wallet fetched successfully", wallet, 200);
-  });
-
   static updateProfile = BaseController.asyncHandler(async (req, res) => {
     const validatedData = BaseController.validateRequest(
       updateProfileValidation,
@@ -78,35 +72,6 @@ class UserController extends BaseController {
     BaseController.sendSuccess(res, "Password changed successfully");
   });
 
-  static deleteAddress = BaseController.asyncHandler(async (req, res) => {
-    const addressId = await UserService.deleteAddress(req);
-    BaseController.logAction(
-      "DELETE_ADDRESS",
-      "Address deleted successfully",
-      addressId
-    );
-    BaseController.sendSuccess(res, "Address deleted successfully", addressId);
-  });
-
-  static fetchWishlist = BaseController.asyncHandler(async (req, res) => {
-    const wishlist = await UserService.fetchWishlist(req?.user?._id);
-    BaseController.logAction(
-      "FETCH_WISHLIST",
-      "Wishlist fetched successfully",
-      wishlist
-    );
-    BaseController.sendSuccess(res, "Wishlist fetched successfully", wishlist);
-  });
-
-  static toggleWishlist = BaseController.asyncHandler(async (req, res) => {
-    const updatedProduct = await UserService.toggleWishlist(req.params.productId, req.user._id);
-    BaseController.logAction(
-      "TOGGLE_WISHLIST",
-      "Product added to wishlist successfully",
-      updatedProduct
-    );
-    BaseController.sendSuccess(res, "Product added to wishlist successfully", updatedProduct);
-  });
 }
 
 module.exports = UserController;
