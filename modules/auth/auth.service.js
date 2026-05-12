@@ -50,6 +50,8 @@ const buildAuthResponse = (user, tokenPair) => ({
 });
 
 const register = async payload => {
+
+  console.log('payload:', payload)
   const existingUser = await User.findByEmail(payload.email);
 
   if (existingUser) {
