@@ -33,4 +33,14 @@ module.exports = {
   EDITOR_SAVE: "editor:save",
   EDITOR_SAVED: "editor:saved",
   EDITOR_SYNC_ERROR: "editor:sync-error",
+
+  CHAT_HISTORY_REQUEST: "chat:history-request",
+  CHAT_HISTORY: "chat:history",
+  CHAT_MESSAGE_SEND: "chat:message-send",
+  CHAT_MESSAGE_CREATED: "chat:message",
+  CHAT_TYPING: "chat:typing",
+  CHAT_READ: "chat:read",
+  CHAT_ERROR: "chat:error",
+
+  NOTIFICATION_NEW: "notification:new",
 };
