@@ -1,4 +1,5 @@
 const { verifyAccessToken } = require("../util/jwt");
+const User = require("../models/User");
 
 const readToken = socket => {
   const authToken = socket.handshake.auth?.token;
@@ -10,16 +11,23 @@ const readToken = socket => {
   return null;
 };
 
-const socketAuth = (socket, next) => {
+const socketAuth = async (socket, next) => {
   const token = readToken(socket);
 
   if (!token) {
-    socket.auth = null;
-    return next();
+    return next(new Error("Socket authentication required"));
   }
 
   try {
-    socket.auth = verifyAccessToken(token);
+    const decoded = verifyAccessToken(token);
+    const user = await User.findById(decoded.id);
+
+    if (!user || user.status !== "active") {
+      return next(new Error("Invalid socket user"));
+    }
+
+    socket.auth = decoded;
+    socket.user = user;
     return next();
   } catch (error) {
     return next(new Error("Invalid socket token"));

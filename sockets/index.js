@@ -1,5 +1,5 @@
 const socketOptions = require("../config/socket");
-const logger = require("../utils/logger");
+const logger = require("../util/logger");
 const socketAuth = require("./auth.socket");
 const registerRoomHandlers = require("./room.socket");
 const registerEditorHandlers = require("./editor.socket");
@@ -16,7 +16,7 @@ const loadSocketServer = () => {
   }
 };
 
-const initializeSockets = httpServer => {
+const initializeSockets = (httpServer) => {
   const SocketServer = loadSocketServer();
   if (!SocketServer) return null;
 
@@ -24,7 +24,7 @@ const initializeSockets = httpServer => {
 
   io.use(socketAuth);
 
-  io.on("connection", socket => {
+  io.on("connection", (socket) => {
     logger.info("Socket connected", {
       socketId: socket.id,
       userId: socket.auth?.id,
@@ -36,9 +36,10 @@ const initializeSockets = httpServer => {
     registerMediaHandlers(socket, io);
     registerSignalingHandlers(socket, io);
 
-    socket.on("disconnect", reason => {
+    socket.on("disconnect", (reason) => {
       logger.info("Socket disconnected", {
         socketId: socket.id,
+        roomId: socket.data.roomId,
         reason,
       });
     });
