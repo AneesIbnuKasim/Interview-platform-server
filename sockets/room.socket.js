@@ -38,6 +38,7 @@ const createSocketMember = (socket, room, payload = {}) => {
     media: {
       micOn: payload.micOn ?? true,
       cameraOn: payload.cameraOn ?? true,
+      screenSharing: false,
       speaking: false,
     },
   };

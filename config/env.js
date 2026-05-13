@@ -29,6 +29,11 @@ const env = {
     windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
     max: Number(process.env.RATE_LIMIT_MAX) || 100,
   },
+  uploads: {
+    root: process.env.UPLOAD_ROOT || path.resolve(__dirname, "../uploads"),
+    publicBaseUrl: process.env.UPLOAD_PUBLIC_BASE_URL || "/uploads",
+    screenshotMaxBytes: Number(process.env.SCREENSHOT_MAX_BYTES) || 5 * 1024 * 1024,
+  },
 };
 
 module.exports = env;

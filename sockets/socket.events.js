@@ -19,6 +19,9 @@ module.exports = {
   MEDIA_MIC_TOGGLE: "media:mic-toggle",
   MEDIA_CAMERA_TOGGLE: "media:camera-toggle",
   MEDIA_SPEAKING: "media:speaking",
+  MEDIA_SCREEN_SHARE_START: "media:screen-share-start",
+  MEDIA_SCREEN_SHARE_STOP: "media:screen-share-stop",
+  MEDIA_SCREEN_SHARE_CHANGED: "media:screen-share-changed",
 
   SIGNAL_OFFER: "signal:offer",
   SIGNAL_ANSWER: "signal:answer",

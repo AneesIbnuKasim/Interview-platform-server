@@ -1,4 +1,6 @@
 const express = require("express");
+const path = require("path");
+const env = require("./config/env");
 const setupSecurity = require("./middlewares/security.middleware");
 const requestContext = require("./middlewares/requestContext.middleware");
 const requestLogger = require("./middlewares/requestLogger.middleware");
@@ -17,6 +19,14 @@ const createApp = () => {
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true, limit: "1mb" }));
   app.use(sanitizeRequest);
+  app.use(
+    env.uploads.publicBaseUrl,
+    express.static(path.resolve(env.uploads.root), {
+      fallthrough: false,
+      immutable: true,
+      maxAge: "7d",
+    }),
+  );
 
   app.use("/api", apiRoutes);
 

@@ -13,6 +13,13 @@ const normalizeError = error => {
     return new AppError(error.message, 400, "VALIDATION_ERROR");
   }
 
+  if (error.name === "MulterError") {
+    return new AppError(error.message, 400, "UPLOAD_ERROR", {
+      field: error.field,
+      code: error.code,
+    });
+  }
+
   if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
     return new AppError("Invalid or expired token", 401, "AUTHENTICATION_ERROR");
   }

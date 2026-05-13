@@ -53,6 +53,7 @@ const addMember = (roomId, member) => {
     media: {
       micOn: true,
       cameraOn: true,
+      screenSharing: false,
       speaking: false,
       ...member.media,
     },
@@ -110,6 +111,25 @@ const updateMedia = (socketId, mediaPatch) => {
   return member;
 };
 
+const stopOtherScreenShares = (roomId, socketId) => {
+  const room = rooms.get(roomId);
+  if (!room) return [];
+
+  const updatedMembers = [];
+
+  room.forEach((member, memberSocketId) => {
+    if (memberSocketId === socketId || !member.media.screenSharing) return;
+
+    member.media = {
+      ...member.media,
+      screenSharing: false,
+    };
+    updatedMembers.push(member);
+  });
+
+  return updatedMembers;
+};
+
 const findMemberSocketId = (roomId, target) => {
   if (target.socketId && rooms.get(roomId)?.has(target.socketId)) {
     return target.socketId;
@@ -129,5 +149,6 @@ module.exports = {
   getRoomIdForSocket,
   removeMember,
   roomChannel,
+  stopOtherScreenShares,
   updateMedia,
 };

@@ -4,6 +4,7 @@ const healthRoutes = require("../modules/health/health.routes");
 const authRoutes = require("../modules/auth/auth.routes");
 const userRoutes = require("../modules/users/user.routes");
 const roomRoutes = require("../modules/rooms/room.routes");
+const screenshotRoutes = require("../modules/screenshots/screenshot.routes");
 
 router.get("/", (req, res) => {
   apiResponse.success(res, {
@@ -16,5 +17,6 @@ router.use("/health", healthRoutes);
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 router.use("/rooms", roomRoutes);
+router.use("/", screenshotRoutes);
 
 module.exports = router;
