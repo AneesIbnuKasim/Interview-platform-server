@@ -57,17 +57,25 @@ const createRoom = async (payload, user) => {
     throw new AppError("Room code already exists", 409, "ROOM_CODE_EXISTS");
   }
 
-  const title = payload.title || `Interview · ${code}`;
+  const scheduledAt = payload.scheduledAt ? new Date(payload.scheduledAt) : null;
+  const isScheduled = Boolean(scheduledAt);
+  const title =
+    payload.title ||
+    [payload.interviewType || "Interview", payload.candidateName]
+      .filter(Boolean)
+      .join(" · ") ||
+    `Interview · ${code}`;
 
   const room = await roomRepository.create({
     code,
     title,
-    candidateName: payload.candidateName,
-    interviewType: payload.interviewType,
-    scheduledAt: payload.scheduledAt,
+    candidateName: payload.candidateName || "",
+    candidateEmail: payload.candidateEmail || "",
+    interviewType: payload.interviewType || "Coding Interview",
+    scheduledAt,
     owner: user._id,
-    status: "active",
-    startedAt: new Date(),
+    status: isScheduled ? "waiting" : "active",
+    startedAt: isScheduled ? null : new Date(),
     participants: [
       {
         user: user._id,

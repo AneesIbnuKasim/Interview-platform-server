@@ -7,8 +7,9 @@ const createRoom = Joi.object({
   code: roomCode,
   title: Joi.string().trim().max(120),
   candidateName: Joi.string().trim().max(100),
+  candidateEmail: Joi.string().trim().lowercase().email().max(160),
   interviewType: Joi.string().trim().max(80),
-  scheduledAt: Joi.date().iso(),
+  scheduledAt: Joi.date().iso().min("now"),
 });
 
 const joinRoom = Joi.object({

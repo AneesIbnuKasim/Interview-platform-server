@@ -55,6 +55,13 @@ const roomSchema = new mongoose.Schema(
       maxlength: 100,
       default: "",
     },
+    candidateEmail: {
+      type: String,
+      lowercase: true,
+      trim: true,
+      maxlength: 160,
+      default: "",
+    },
     interviewType: {
       type: String,
       trim: true,
@@ -100,6 +107,7 @@ roomSchema.methods.toClient = function toClient() {
     code: this.code,
     title: this.title,
     candidateName: this.candidateName,
+    candidateEmail: this.candidateEmail,
     interviewType: this.interviewType,
     status: this.status,
     ownerId: this.owner?.toString(),
