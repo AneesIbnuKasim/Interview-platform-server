@@ -34,6 +34,27 @@ const save = async ({ roomCode, file }) => {
   };
 };
 
+const remove = async (key) => {
+  const absoluteRoot = path.resolve(env.uploads.root);
+  const absolutePath = path.resolve(absoluteRoot, key);
+
+  if (!absolutePath.startsWith(`${absoluteRoot}${path.sep}`)) {
+    return { removed: false, skipped: true, reason: "INVALID_KEY" };
+  }
+
+  try {
+    await fs.rm(absolutePath, { force: false });
+    return { removed: true, skipped: false };
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return { removed: false, skipped: true, reason: "NOT_FOUND" };
+    }
+
+    throw error;
+  }
+};
+
 module.exports = {
+  remove,
   save,
 };

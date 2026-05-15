@@ -3,16 +3,19 @@ const createApp = require("./app");
 const env = require("./config/env");
 const { connectDatabase, disconnectDatabase } = require("./config/database");
 const initializeSockets = require("./sockets");
+const { startCleanupScheduler } = require("./modules/cleanup/cleanup.scheduler");
 const logger = require("./utils/logger");
 
 const app = createApp();
 const httpServer = http.createServer(app);
 
 let io = null;
+let cleanupScheduler = null;
 
 const start = async () => {
   await connectDatabase();
   io = initializeSockets(httpServer);
+  cleanupScheduler = startCleanupScheduler();
 
   httpServer.listen(env.port, () => {
     logger.info(`Server running on port ${env.port}`, {
@@ -25,6 +28,11 @@ const start = async () => {
 };
 
 const stop = async () => {
+  if (cleanupScheduler) {
+    cleanupScheduler.stop();
+    cleanupScheduler = null;
+  }
+
   if (io) {
     io.close();
   }
