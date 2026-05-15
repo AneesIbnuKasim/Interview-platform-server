@@ -61,10 +61,6 @@ const userSchema = new mongoose.Schema(
         default: "",
       },
     },
-    timezone: {
-      type: String,
-      default: "UTC",
-    },
     preferences: {
       emailNotifications: {
         type: Boolean,
@@ -115,7 +111,6 @@ userSchema.methods.toAuthJSON = function toAuthJSON() {
     email: this.email,
     role: this.role,
     avatar: this.avatar,
-    timezone: this.timezone,
     preferences: this.preferences,
   };
 };

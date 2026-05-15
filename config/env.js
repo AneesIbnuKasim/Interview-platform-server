@@ -34,6 +34,14 @@ const env = {
     publicBaseUrl: process.env.UPLOAD_PUBLIC_BASE_URL || "/uploads",
     screenshotMaxBytes: Number(process.env.SCREENSHOT_MAX_BYTES) || 5 * 1024 * 1024,
   },
+  mail: {
+    host: process.env.SMTP_HOST || "",
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === "true",
+    user: process.env.SMTP_USER || "",
+    pass: process.env.SMTP_PASS || "",
+    from: process.env.SMTP_FROM || process.env.SMTP_USER || "Pairloop <no-reply@pairloop.dev>",
+  },
 };
 
 module.exports = env;

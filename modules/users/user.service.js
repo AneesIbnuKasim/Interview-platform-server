@@ -32,10 +32,6 @@ const updateProfile = async (userId, payload) => {
     user.name = payload.name;
   }
 
-  if (payload.timezone !== undefined) {
-    user.timezone = payload.timezone;
-  }
-
   if (payload.preferences) {
     const preferences = user.preferences?.toObject?.() ?? user.preferences ?? {};
 

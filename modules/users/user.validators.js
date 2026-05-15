@@ -3,7 +3,6 @@ const Joi = require("joi");
 const updateProfile = Joi.object({
   name: Joi.string().trim().min(2).max(80),
   email: Joi.string().trim().lowercase().email().max(160),
-  timezone: Joi.string().trim().max(80),
   preferences: Joi.object({
     emailNotifications: Joi.boolean(),
     autoRecordSessions: Joi.boolean(),

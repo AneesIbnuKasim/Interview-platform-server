@@ -1,11 +1,23 @@
 const ChatMessage = require("../../models/ChatMessage");
 const Notification = require("../../models/Notification");
+const User = require("../../models/User");
 const roomRepository = require("../rooms/room.repository");
+const emailService = require("../notifications/email.service");
 const { AppError, NotFoundError } = require("../../util/errors");
+const logger = require("../../util/logger");
 
 const messagePreview = (text) => {
   if (text.length <= 120) return text;
   return `${text.slice(0, 117)}...`;
+};
+
+const escapeHtml = (value) => {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 };
 
 const getRoom = async (roomId) => {
@@ -73,7 +85,7 @@ const createMessage = async (roomId, payload, user) => {
 };
 
 const createMessageNotifications = async (room, message, sender) => {
-  const recipients = room.participants
+  const recipientIds = room.participants
     .filter((participant) => {
       return (
         participant.status === "active" &&
@@ -82,12 +94,17 @@ const createMessageNotifications = async (room, message, sender) => {
     })
     .map((participant) => participant.user);
 
-  if (!recipients.length) {
+  if (!recipientIds.length) {
     return [];
   }
 
+  const users = await User.find({ _id: { $in: recipientIds } });
+  const usersById = new Map(
+    users.map((user) => [user._id.toString(), user]),
+  );
+
   const docs = await Notification.insertMany(
-    recipients.map((recipient) => ({
+    recipientIds.map((recipient) => ({
       recipient,
       room: room._id,
       roomCode: room.code,
@@ -101,6 +118,28 @@ const createMessageNotifications = async (room, message, sender) => {
       },
     })),
   );
+
+  await Promise.allSettled(
+    recipientIds.map(async (recipient) => {
+      const user = usersById.get(recipient.toString());
+      if (!user?.preferences?.emailNotifications) return;
+
+      await emailService.sendEmail({
+        to: user.email,
+        subject: `New Pairloop message in ${room.title}`,
+        text: `${sender.name}: ${messagePreview(message.text)}\n\nOpen room: ${room.code}`,
+        html: `<p><strong>${escapeHtml(sender.name)}</strong> sent a message in <strong>${escapeHtml(room.title)}</strong>.</p><p>${escapeHtml(messagePreview(message.text))}</p><p>Room code: <strong>${escapeHtml(room.code)}</strong></p>`,
+      });
+    }),
+  ).then((results) => {
+    results.forEach((result) => {
+      if (result.status === "rejected") {
+        logger.warn("Email notification failed", {
+          message: result.reason?.message,
+        });
+      }
+    });
+  });
 
   return docs.map((notification) => notification.toClient());
 };
