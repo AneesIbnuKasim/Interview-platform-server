@@ -40,6 +40,7 @@ const relaySignal = (socket, io, eventName, payload, signalKey, callback) => {
   io.to(target.targetSocketId).emit(eventName, {
     roomId: target.roomId,
     from: getSender(socket),
+    kind: payload.kind || "camera",
     [signalKey]: payload[signalKey],
   });
 
