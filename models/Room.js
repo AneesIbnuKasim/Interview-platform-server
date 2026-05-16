@@ -19,15 +19,28 @@ const participantSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["active", "left"],
+      enum: ["pending", "active", "left"],
       default: "active",
     },
     joinedAt: {
       type: Date,
-      default: Date.now,
+      default: null,
     },
     leftAt: {
       type: Date,
+      default: null,
+    },
+    requestedAt: {
+      type: Date,
+      default: null,
+    },
+    admittedAt: {
+      type: Date,
+      default: null,
+    },
+    admittedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       default: null,
     },
   },
@@ -118,6 +131,9 @@ roomSchema.methods.toClient = function toClient() {
       status: participant.status,
       joinedAt: participant.joinedAt,
       leftAt: participant.leftAt,
+      requestedAt: participant.requestedAt,
+      admittedAt: participant.admittedAt,
+      admittedBy: participant.admittedBy?.toString() || null,
     })),
     scheduledAt: this.scheduledAt,
     startedAt: this.startedAt,

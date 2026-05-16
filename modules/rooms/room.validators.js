@@ -31,6 +31,11 @@ const roomParams = Joi.object({
   roomId,
 });
 
+const participantParams = Joi.object({
+  roomId,
+  participantId: Joi.string().trim().min(3).max(32).required(),
+});
+
 const updateStatus = Joi.object({
   status: Joi.string().valid("waiting", "active", "ended", "archived").required(),
 });
@@ -45,6 +50,7 @@ module.exports = {
   joinRoomByPath,
   joinRoomParams,
   roomParams,
+  participantParams,
   updateStatus,
   listRooms,
 };

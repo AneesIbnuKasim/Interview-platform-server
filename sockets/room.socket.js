@@ -60,8 +60,23 @@ const joinSocketRoom = async (socket, io, payload = {}, callback) => {
   }
 
   try {
-    const { room } = await roomService.joinRoom(roomId, payload, socket.user);
+    const result = await roomService.joinRoom(roomId, payload, socket.user);
+    const { room } = result;
     const roomCode = room.id;
+
+    if (result.admissionRequired) {
+      io.to(roomStore.roomChannel(roomCode)).emit(EVENTS.ROOM_JOIN_REQUESTED, {
+        room,
+        participant: result.pendingParticipant,
+      });
+      ok(callback, {
+        room,
+        admissionRequired: true,
+        participant: result.pendingParticipant,
+      });
+      return;
+    }
+
     const channel = roomStore.roomChannel(roomCode);
     const memberPayload = createSocketMember(socket, room, payload);
     const { member, reconnected } = roomStore.addMember(roomCode, memberPayload);

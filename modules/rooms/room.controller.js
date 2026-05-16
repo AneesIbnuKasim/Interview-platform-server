@@ -19,12 +19,20 @@ const listRooms = asyncHandler(async (req, res) => {
 
 const joinRoom = asyncHandler(async (req, res) => {
   const data = await roomService.joinRoom(req.params.roomId, req.body, req.user);
-  apiResponse.success(res, data, "Joined room successfully");
+  const message = data.admissionRequired
+    ? "Join request sent to the room host"
+    : "Joined room successfully";
+
+  apiResponse.success(res, data, message, data.admissionRequired ? 202 : 200);
 });
 
 const joinRoomByCode = asyncHandler(async (req, res) => {
   const data = await roomService.joinRoom(req.body.roomCode, req.body, req.user);
-  apiResponse.success(res, data, "Joined room successfully");
+  const message = data.admissionRequired
+    ? "Join request sent to the room host"
+    : "Joined room successfully";
+
+  apiResponse.success(res, data, message, data.admissionRequired ? 202 : 200);
 });
 
 const leaveRoom = asyncHandler(async (req, res) => {
@@ -37,6 +45,24 @@ const updateStatus = asyncHandler(async (req, res) => {
   apiResponse.success(res, data, "Room status updated successfully");
 });
 
+const admitParticipant = asyncHandler(async (req, res) => {
+  const data = await roomService.admitParticipant(
+    req.params.roomId,
+    req.params.participantId,
+    req.user,
+  );
+  apiResponse.success(res, data, "Participant admitted successfully");
+});
+
+const denyParticipant = asyncHandler(async (req, res) => {
+  const data = await roomService.denyParticipant(
+    req.params.roomId,
+    req.params.participantId,
+    req.user,
+  );
+  apiResponse.success(res, data, "Participant request denied");
+});
+
 module.exports = {
   createRoom,
   getRoom,
@@ -45,4 +71,6 @@ module.exports = {
   joinRoomByCode,
   leaveRoom,
   updateStatus,
+  admitParticipant,
+  denyParticipant,
 };

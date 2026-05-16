@@ -23,7 +23,7 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["chat:message"],
+      enum: ["chat:message", "room:join-request"],
       required: true,
       index: true,
     },

@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const Notification = require("../../models/Notification");
 const roomRepository = require("./room.repository");
 const { AppError, NotFoundError } = require("../../util/errors");
 
@@ -49,6 +50,72 @@ const updateRoomStatusFromParticipants = (room) => {
   }
 };
 
+const removeParticipant = (room, userId) => {
+  room.participants = room.participants.filter(
+    (participant) => participant.user.toString() !== userId.toString(),
+  );
+};
+
+const createJoinRequestNotification = async (room, participant, user) => {
+  await Notification.create({
+    recipient: room.owner,
+    room: room._id,
+    roomCode: room.code,
+    type: "room:join-request",
+    title: "Join request",
+    body: `${participant.name} wants to join ${room.title}`,
+    data: {
+      roomId: room.code,
+      requesterId: user._id.toString(),
+      requesterName: participant.name,
+    },
+  });
+};
+
+const requestAdmission = async (room, payload, user, participant) => {
+  const now = new Date();
+  const name = payload.displayName || user.name;
+  const role = payload.role || participant?.role || "candidate";
+  let shouldNotify = false;
+
+  if (participant) {
+    participant.name = name;
+    participant.role = role;
+    participant.status = "pending";
+    participant.leftAt = null;
+    participant.requestedAt = participant.requestedAt || now;
+  } else {
+    room.participants.push({
+      user: user._id,
+      name,
+      role,
+      status: "pending",
+      requestedAt: now,
+    });
+    shouldNotify = true;
+  }
+
+  await room.save();
+
+  const pendingParticipant = getParticipant(room, user._id);
+
+  if (shouldNotify) {
+    await createJoinRequestNotification(room, pendingParticipant, user);
+  }
+
+  return {
+    room: room.toClient(),
+    admissionRequired: true,
+    pendingParticipant: {
+      id: pendingParticipant.user.toString(),
+      name: pendingParticipant.name,
+      role: pendingParticipant.role,
+      status: pendingParticipant.status,
+      requestedAt: pendingParticipant.requestedAt,
+    },
+  };
+};
+
 const createRoom = async (payload, user) => {
   const code = payload.code ? payload.code.toUpperCase() : await createUniqueCode();
   const existingRoom = await roomRepository.findByCode(code);
@@ -82,6 +149,9 @@ const createRoom = async (payload, user) => {
         name: user.name,
         role: "interviewer",
         status: "active",
+        joinedAt: new Date(),
+        admittedAt: new Date(),
+        admittedBy: user._id,
       },
     ],
   });
@@ -117,13 +187,20 @@ const joinRoom = async (roomId, payload, user) => {
   ensureRoomCanBeJoined(room);
 
   const participant = getParticipant(room, user._id);
+  const isOwner = room.owner.toString() === user._id.toString();
+
+  if (!isOwner && (!participant || participant.status === "pending")) {
+    return requestAdmission(room, payload, user, participant);
+  }
 
   if (participant) {
     participant.name = payload.displayName || user.name;
     participant.role = payload.role || participant.role;
     participant.status = "active";
     participant.leftAt = null;
-    participant.joinedAt = participant.joinedAt || new Date();
+    participant.joinedAt = new Date();
+    participant.admittedAt = participant.admittedAt || new Date();
+    participant.admittedBy = participant.admittedBy || room.owner;
   } else {
     room.participants.push({
       user: user._id,
@@ -131,6 +208,8 @@ const joinRoom = async (roomId, payload, user) => {
       role: payload.role || "interviewer",
       status: "active",
       joinedAt: new Date(),
+      admittedAt: new Date(),
+      admittedBy: user._id,
     });
   }
 
@@ -152,6 +231,14 @@ const leaveRoom = async (roomId, user) => {
   }
 
   const participant = getParticipant(room, user._id);
+
+  if (participant.status === "pending") {
+    removeParticipant(room, user._id);
+    await room.save();
+
+    return { room: room.toClient() };
+  }
+
   participant.status = "left";
   participant.leftAt = new Date();
 
@@ -188,6 +275,60 @@ const updateStatus = async (roomId, status, user) => {
   return { room: room.toClient() };
 };
 
+const admitParticipant = async (roomId, participantId, user) => {
+  const room = await roomRepository.findByIdOrCode(roomId);
+
+  if (!room) {
+    throw new NotFoundError("Room not found");
+  }
+
+  if (room.owner.toString() !== user._id.toString()) {
+    throw new AppError("Only the room owner can admit participants", 403, "ROOM_OWNER_REQUIRED");
+  }
+
+  ensureRoomCanBeJoined(room);
+
+  const participant = getParticipant(room, participantId);
+
+  if (!participant || participant.status !== "pending") {
+    throw new NotFoundError("Participant request not found");
+  }
+
+  participant.status = "active";
+  participant.joinedAt = new Date();
+  participant.leftAt = null;
+  participant.admittedAt = new Date();
+  participant.admittedBy = user._id;
+
+  updateRoomStatusFromParticipants(room);
+  await room.save();
+
+  return { room: room.toClient() };
+};
+
+const denyParticipant = async (roomId, participantId, user) => {
+  const room = await roomRepository.findByIdOrCode(roomId);
+
+  if (!room) {
+    throw new NotFoundError("Room not found");
+  }
+
+  if (room.owner.toString() !== user._id.toString()) {
+    throw new AppError("Only the room owner can deny participants", 403, "ROOM_OWNER_REQUIRED");
+  }
+
+  const participant = getParticipant(room, participantId);
+
+  if (!participant || participant.status !== "pending") {
+    throw new NotFoundError("Participant request not found");
+  }
+
+  removeParticipant(room, participantId);
+  await room.save();
+
+  return { room: room.toClient() };
+};
+
 module.exports = {
   createRoom,
   getRoom,
@@ -195,4 +336,6 @@ module.exports = {
   joinRoom,
   leaveRoom,
   updateStatus,
+  admitParticipant,
+  denyParticipant,
 };

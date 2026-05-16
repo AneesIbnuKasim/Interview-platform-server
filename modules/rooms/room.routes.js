@@ -42,4 +42,16 @@ router.patch(
   roomController.updateStatus,
 );
 
+router.patch(
+  "/:roomId/participants/:participantId/admit",
+  validate({ params: roomValidators.participantParams }),
+  roomController.admitParticipant,
+);
+
+router.patch(
+  "/:roomId/participants/:participantId/deny",
+  validate({ params: roomValidators.participantParams }),
+  roomController.denyParticipant,
+);
+
 module.exports = router;

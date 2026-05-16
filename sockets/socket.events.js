@@ -4,6 +4,7 @@ module.exports = {
 
   ROOM_JOIN: "room:join",
   ROOM_JOINED: "room:joined",
+  ROOM_JOIN_REQUESTED: "room:join-requested",
   ROOM_LEAVE: "room:leave",
   ROOM_LEFT: "room:left",
   ROOM_STATE: "room:state",
