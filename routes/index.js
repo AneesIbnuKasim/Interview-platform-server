@@ -7,6 +7,7 @@ const roomRoutes = require("../modules/rooms/room.routes");
 const editorRoutes = require("../modules/editor/editor.routes");
 const notificationRoutes = require("../modules/notifications/notification.routes");
 const screenshotRoutes = require("../modules/screenshots/screenshot.routes");
+const teamRoutes = require("../modules/team/team.routes");
 
 router.get("/", (req, res) => {
   apiResponse.success(res, {
@@ -21,6 +22,7 @@ router.use("/users", userRoutes);
 router.use("/rooms", roomRoutes);
 router.use("/editor", editorRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/team", teamRoutes);
 router.use("/", screenshotRoutes);
 
 module.exports = router;

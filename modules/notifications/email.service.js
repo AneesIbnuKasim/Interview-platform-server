@@ -11,7 +11,6 @@ const isConfigured = () => {
 const getTransporter = () => {
   if (!isConfigured()) return null;
   if (transporter) return transporter;
-
   transporter = nodemailer.createTransport({
     host: env.mail.host,
     port: env.mail.port,
@@ -21,7 +20,8 @@ const getTransporter = () => {
       pass: env.mail.pass,
     },
   });
-
+  
+  console.log('transporter')
   return transporter;
 };
 
