@@ -7,6 +7,14 @@ const { authenticate } = require("../../middlewares/auth.middleware");
 router.use(authenticate);
 
 router.post(
+  "/run",
+  validate({
+    body: editorValidators.runCode,
+  }),
+  editorController.runPlaygroundCode,
+);
+
+router.post(
   "/:roomId/run",
   validate({
     params: editorValidators.roomParams,

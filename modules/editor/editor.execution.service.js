@@ -49,7 +49,11 @@ const runners = {
   rust: {
     file: "main.rs",
     steps: [
-      { command: "rustc", args: ["main.rs", "-O", "-o", "main"], type: "compile" },
+      {
+        command: "rustc",
+        args: ["main.rs", "-O", "-o", "main"],
+        type: "compile",
+      },
       { command: "./main", args: [], type: "run" },
     ],
   },
@@ -176,31 +180,43 @@ const ensureExecutableRoom = async (roomId, user) => {
   }
 
   if (!isActiveParticipant(room, user._id)) {
-    throw new AppError("Join the room before running code", 403, "ROOM_ACCESS_REQUIRED");
+    throw new AppError(
+      "Join the room before running code",
+      403,
+      "ROOM_ACCESS_REQUIRED",
+    );
   }
 
   return room;
 };
 
-const runCode = async (roomId, payload, user) => {
+const executeCode = async (payload, executionMeta = {}) => {
   const runner = runners[payload.language];
 
   if (!runner) {
-    throw new AppError("Unsupported execution language", 400, "UNSUPPORTED_LANGUAGE");
+    throw new AppError(
+      "Unsupported execution language",
+      400,
+      "UNSUPPORTED_LANGUAGE",
+    );
   }
 
-  const room = await ensureExecutableRoom(roomId, user);
   const workdir = await fs.mkdtemp(path.join(os.tmpdir(), "pairloop-run-"));
 
   try {
-    await fs.writeFile(path.join(workdir, runner.file), payload.code || "", "utf8");
+    await fs.writeFile(
+      path.join(workdir, runner.file),
+      payload.code || "",
+      "utf8",
+    );
     const result = await executeSteps(runner, workdir, payload.stdin || "");
 
     return {
       execution: {
-        roomId: normalizeRoomId(room.code),
+        ...executionMeta,
         language: payload.language,
-        status: result.exitCode === 0 && !result.timedOut ? "completed" : "failed",
+        status:
+          result.exitCode === 0 && !result.timedOut ? "completed" : "failed",
         step: result.step,
         exitCode: result.exitCode,
         stdout: result.stdout,
@@ -214,6 +230,21 @@ const runCode = async (roomId, payload, user) => {
   }
 };
 
+const runCode = async (roomId, payload, user) => {
+  const room = await ensureExecutableRoom(roomId, user);
+
+  return executeCode(payload, {
+    roomId: normalizeRoomId(room.code),
+  });
+};
+
+const runPlaygroundCode = async (payload) => {
+  return executeCode(payload, {
+    playground: true,
+  });
+};
+
 module.exports = {
   runCode,
+  runPlaygroundCode,
 };

@@ -12,9 +12,9 @@ const toArray = (value, fallback = []) => {
 const env = {
   nodeEnv: process.env.NODE_ENV || "development",
   port: Number(process.env.PORT) || 5001 ,
-  mongoUri: process.env.MONGO_URI || "mongodb://localhost:27017/pairloop",
+  mongoUri: process.env.MONGO_URI ,
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
-  clientOrigins: toArray(process.env.CLIENT_ORIGINS, [
+  clientOrigins: toArray(process.env.FRONTEND_URL, [
     "http://localhost:5173",
     "http://localhost:5175",
     "http://localhost:8080",

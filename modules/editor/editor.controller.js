@@ -3,10 +3,20 @@ const apiResponse = require("../../util/apiResponse");
 const executionService = require("./editor.execution.service");
 
 const runCode = asyncHandler(async (req, res) => {
-  const data = await executionService.runCode(req.params.roomId, req.body, req.user);
+  const data = await executionService.runCode(
+    req.params.roomId,
+    req.body,
+    req.user,
+  );
+  apiResponse.success(res, data, "Code executed successfully");
+});
+
+const runPlaygroundCode = asyncHandler(async (req, res) => {
+  const data = await executionService.runPlaygroundCode(req.body);
   apiResponse.success(res, data, "Code executed successfully");
 });
 
 module.exports = {
   runCode,
+  runPlaygroundCode,
 };

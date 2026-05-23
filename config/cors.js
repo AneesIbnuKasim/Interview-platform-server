@@ -2,6 +2,8 @@ const env = require("./env");
 
 const corsOptions = {
   origin(origin, callback) {
+    console.log('callback::',callback, origin)
+    console.log('callback check::',env.clientOrigins.includes(origin))
     if (!origin || env.clientOrigins.includes(origin)) {
       return callback(null, true);
     }
