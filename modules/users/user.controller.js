@@ -12,7 +12,13 @@ const updateProfile = asyncHandler(async (req, res) => {
   apiResponse.success(res, data, "Profile updated successfully");
 });
 
+const updateAvatar = asyncHandler(async (req, res) => {
+  const data = await userService.updateAvatar(req.user._id, req.file);
+  apiResponse.success(res, data, "Profile photo updated successfully");
+});
+
 module.exports = {
   getProfile,
   updateProfile,
+  updateAvatar,
 };

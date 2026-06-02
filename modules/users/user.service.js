@@ -1,5 +1,7 @@
 const User = require("../../models/User");
-const { ConflictError, NotFoundError } = require("../../util/errors");
+const { AppError, ConflictError, NotFoundError } = require("../../util/errors");
+const logger = require("../../util/logger");
+const avatarStorage = require("./storage/localAvatarStorage");
 
 const getProfile = async userId => {
   const user = await User.findById(userId);
@@ -46,7 +48,43 @@ const updateProfile = async (userId, payload) => {
   return { user: user.toAuthJSON() };
 };
 
+const updateAvatar = async (userId, file) => {
+  if (!file) {
+    throw new AppError("Profile photo is required", 400, "AVATAR_REQUIRED");
+  }
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
+
+  const previousKey = user.avatar?.key;
+  const storedAvatar = await avatarStorage.save({
+    userId: user._id.toString(),
+    file,
+  });
+
+  user.avatar = storedAvatar;
+  await user.save();
+
+  if (previousKey) {
+    try {
+      await avatarStorage.remove(previousKey);
+    } catch (error) {
+      logger.warn("Failed to remove previous avatar", {
+        userId: user._id.toString(),
+        key: previousKey,
+        message: error.message,
+      });
+    }
+  }
+
+  return { user: user.toAuthJSON() };
+};
+
 module.exports = {
   getProfile,
   updateProfile,
+  updateAvatar,
 };
