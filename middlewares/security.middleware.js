@@ -12,7 +12,11 @@ const apiLimiter = rateLimit({
 });
 
 const setupSecurity = app => {
-  app.use(helmet());
+  app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
   app.use(cors(corsOptions));
   app.use(apiLimiter);
 };

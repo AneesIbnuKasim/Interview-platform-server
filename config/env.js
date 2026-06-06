@@ -13,7 +13,7 @@ const env = {
   nodeEnv: process.env.NODE_ENV || "development",
   port: Number(process.env.PORT) || 5001 ,
   mongoUri: process.env.MONGO_URI ,
-  frontendUrl: process.env.FRONTEND_URL || "http://localhost:808",
+  frontendUrl: process.env.FRONTEND_URL || "http://localhost:8080",
   clientOrigins: toArray(process.env.FRONTEND_URL, [
     "http://localhost:5173",
     "http://localhost:5175",
@@ -34,7 +34,7 @@ const env = {
     root: process.env.UPLOAD_ROOT || path.resolve(__dirname, "../uploads"),
     publicBaseUrl: process.env.UPLOAD_PUBLIC_BASE_URL || "/uploads",
     screenshotMaxBytes: Number(process.env.SCREENSHOT_MAX_BYTES) || 5 * 1024 * 1024,
-    avatarMaxBytes: Number(process.env.AVATAR_MAX_BYTES) || 2 * 1024 * 1024,
+    avatarMaxBytes: Number(process.env.AVATAR_MAX_BYTES) || 5 * 1024 * 1024,
   },
   mail: {
     host: process.env.SMTP_HOST || "",
